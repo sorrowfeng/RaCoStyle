@@ -10,26 +10,25 @@
 #include "style/Icons.h"
 
 namespace raco::style {
-	
+
 const Icons& Icons::instance() {
-	static Icons icons;
-	return icons;
+  static Icons icons;
+  return icons;
 }
 
 QIcon Icons::makeDisabled(const QString& name) {
-	QIcon normalIcon{name};
-	QIcon disabledIcon{};
-	auto pixmapExtent{256};
+  QIcon normalIcon{name};
+  QIcon disabledIcon{};
+  auto pixmapExtent{256};
 
-	disabledIcon.addPixmap(normalIcon.pixmap(pixmapExtent, QIcon::Disabled), QIcon::Normal);
+  disabledIcon.addPixmap(normalIcon.pixmap(pixmapExtent, QIcon::Disabled),
+                         QIcon::Normal);
 
-	return disabledIcon;
+  return disabledIcon;
 }
 
-Icons::Icons() {
-}
+Icons::Icons() {}
 
-Icons::~Icons() {
-}
+Icons::~Icons() {}
 
 }  // namespace raco::style

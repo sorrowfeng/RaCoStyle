@@ -27,9 +27,11 @@ target_link_libraries(${ProjectName} PRIVATE
 
 # 使用
 #include "style/RaCoStyle.h"
+#include "style/ThemeManager.h"
 
 int main(int argc, char *argv[])
 {
+  // 默认Dark颜色
   QApplication::setStyle(new raco::style::RaCoStyle());
 
   QApplication a(argc, argv);
@@ -39,6 +41,12 @@ int main(int argc, char *argv[])
 
   MainWindow w;
   w.show();
+
+  // 在代码中动态切换配色主题
+  raco::style::ThemeManager::instance().setThemeMode(
+      raco::style::ThemeMode::Light);
+
+
   return a.exec();
 }
 

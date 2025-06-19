@@ -13,6 +13,8 @@ add_library(libStyle
     include/style/Colors.h src/Colors.cpp
     include/style/Icons.h src/Icons.cpp
     include/style/RaCoStyle.h src/RaCoStyle.cpp
+    include/style/ThemeManager.h
+    src/ThemeManager.cpp
 )
 
 target_include_directories(libStyle

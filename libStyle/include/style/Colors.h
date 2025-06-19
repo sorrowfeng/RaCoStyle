@@ -15,56 +15,56 @@
 
 namespace raco::style {
 
+enum class ThemeMode { Dark, Light };
+
 enum class Colormap {
-	// standard colors for palette
-	grayBack,
-	grayEdit,
-	grayButton,
-	selected,
-	text,
-	grayEditDisabled,
-	textDisabled,
+  // standard colors for palette
+  grayBack,
+  grayEdit,
+  grayButton,
+  selected,
+  text,
+  grayEditDisabled,
+  textDisabled,
 
-	// additional colors for text editors
-	textHighlightIndentation,
-	textHighlightComments,
-	textHighlightNumbers,
-	textHighlightArrows,
+  // additional colors for text editors
+  textHighlightIndentation,
+  textHighlightComments,
+  textHighlightNumbers,
+  textHighlightArrows,
 
-	// additional colors for custom widgets and custom roles/states
-	updatedInBackground,
-	errorColor,
-	warningColor,
-	errorColorDark,
-	errorColorLight,
-	dockTitleBackground,
-	externalReference,
-	externalReferenceDisabled,
+  // additional colors for custom widgets and custom roles/states
+  updatedInBackground,
+  errorColor,
+  warningColor,
+  errorColorDark,
+  errorColorLight,
+  dockTitleBackground,
+  externalReference,
+  externalReferenceDisabled,
 
-	abstractSceneViewBackground
+  abstractSceneViewBackground
 };
 
 class Colors {
-public:
-	static QColor& color(Colormap color) {
-		return Colors::instance().getColor(color);
-	}
-	static QBrush& brush(Colormap color) {
-		return Colors::instance().getBrush(color);
-	}
+ public:
+  static QColor& color(Colormap color);
+  static QBrush& brush(Colormap color);
+  static void setThemeMode(ThemeMode mode);
 
-private:
-	Colors() noexcept;
-	QColor& getColor(Colormap color) {
-		return colors_[color];
-	}
-	QBrush& getBrush(Colormap color) {
-		return brushes_[color];
-	}
-	static Colors& instance();
-	static Colors* instance_;
-	std::map<Colormap, QColor> colors_;
-	std::map<Colormap, QBrush> brushes_;
+ private:
+  Colors() noexcept;
+
+  static Colors& instance();
+  static Colors* instance_;
+
+  std::map<Colormap, QColor> darkColors_;
+  std::map<Colormap, QBrush> darkBrushes_;
+
+  std::map<Colormap, QColor> lightColors_;
+  std::map<Colormap, QBrush> lightBrushes_;
+
+  ThemeMode currentThemeMode_;
 };
 
 }  // namespace raco::style
