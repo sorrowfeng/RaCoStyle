@@ -16,9 +16,14 @@
 
 ### 使用说明
 ```bash
-git clone https://github.com/yourusername/your-repo.git
+git clone https://github.com/sorrowfeng/RaCoStyle.git
 
-复制到你的项目中
+clone到你的项目中
+
+# 添加子目录
+add_subdirectory(RaCoStyle/libStyle)
+
+add_executable(${ProjectName} main.cpp)
 
 # 链接库
 target_link_libraries(${ProjectName} PRIVATE
