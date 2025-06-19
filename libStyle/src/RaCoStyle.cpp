@@ -22,26 +22,11 @@
 #include <QStyleFactory>
 
 namespace raco::style {
-
 RaCoStyle::RaCoStyle() : QProxyStyle(QStyleFactory::create("windows")) {
   setObjectName("RaCoStyle");
 
   // disable takeover of windows color scheme to make style work
   QApplication::setDesktopSettingsAware(false);
-}
-
-QVariant RaCoStyle::saveGetProperty(const QWidget* widget, const char* name,
-                                    size_t level) {
-  const QObject* current = widget;
-  while (current != nullptr && level > 0) {
-    current = current->parent();
-    --level;
-  }
-  if (current != nullptr && level == 0) {
-    return current->property(name);
-  } else {
-    return {};
-  }
 }
 
 QPalette RaCoStyle::standardPalette() const {
@@ -62,10 +47,9 @@ QPalette RaCoStyle::standardPalette() const {
                      Colors::color(Colormap::textDisabled));
     palette.setBrush(QPalette::Disabled, QPalette::Base,
                      Colors::color(Colormap::grayEditDisabled));
-    palette.setBrush(
-        QPalette::Disabled, QPalette::Button,
-        Colors::brush(
-            Colormap::grayButton));  // button is also used for menu items
+    // button is also used for menu items
+    palette.setBrush(QPalette::Disabled, QPalette::Button,
+                     Colors::brush(Colormap::grayButton));
 
     defPalette_ = palette;
   }
@@ -98,7 +82,7 @@ int RaCoStyle::pixelMetric(PixelMetric metric, const QStyleOption* option,
     case PM_ButtonMargin:
       return 0;
 
-      // check box size
+    // check box size
     case PM_IndicatorHeight:
       return 20;
     case PM_IndicatorWidth:
@@ -175,163 +159,24 @@ QPixmap RaCoStyle::generatedIconPixmap(QIcon::Mode iconMode,
 QRect RaCoStyle::subControlRect(ComplexControl cc,
                                 const QStyleOptionComplex* opt, SubControl sc,
                                 const QWidget* widget) const {
-  QRect ret;
-  switch (cc) {
-    case CC_ComboBox:
-      if (const QStyleOptionComboBox* cb =
-              qstyleoption_cast<const QStyleOptionComboBox*>(opt)) {
-        if (sc == SC_ComboBoxEditField) {
-          ret = cb->rect.adjusted(CORNER_SPACING, 0, -CORNER_SPACING - 16, 0);
-        } else {
-          ret = QProxyStyle::subControlRect(cc, opt, sc, widget);
-        }
-      }
-      break;
-    default:
-      ret = QProxyStyle::subControlRect(cc, opt, sc, widget);
-  }
-  return ret;
+  return QProxyStyle::subControlRect(cc, opt, sc, widget);
 }
 
 QRect RaCoStyle::subElementRect(QStyle::SubElement sr, const QStyleOption* opt,
                                 const QWidget* widget) const {
-  QRect r;
-  switch (sr) {
-    case SE_LineEditContents:
-      if (const QStyleOptionFrame* f =
-              qstyleoption_cast<const QStyleOptionFrame*>(opt)) {
-        // reserve space to left and right to compensate for rounded corners
-        // generally ignore lineWidth as we are not using borders in our style
-        r = f->rect.adjusted(CORNER_SPACING, 0, -CORNER_SPACING, 0);
-        r = visualRect(opt->direction, opt->rect, r);
-      }
-      break;
-    default:
-      r = QProxyStyle::subElementRect(sr, opt, widget);
-  }
-  return r;
+  return QProxyStyle::subElementRect(sr, opt, widget);
 }
 
 QSize RaCoStyle::sizeFromContents(ContentsType ct, const QStyleOption* opt,
                                   const QSize& csz,
                                   const QWidget* widget) const {
-  QSize sz(csz);
-  switch (ct) {
-    case CT_PushButton:
-      if (saveGetProperty(widget, "slimButton").toBool()) {
-        if (const QStyleOptionButton* btn =
-                qstyleoption_cast<const QStyleOptionButton*>(opt)) {
-          sz = QCommonStyle::sizeFromContents(ct, opt, csz, widget);
-          if (btn->features & QStyleOptionButton::AutoDefaultButton) {
-            int defwidth = 2 * proxy()->pixelMetric(PM_ButtonDefaultIndicator,
-                                                    btn, widget);
-            sz.setWidth(sz.width() + defwidth);
-            sz.setHeight(sz.height() + defwidth);
-          }
-        }
-      } else {
-        sz = QProxyStyle::sizeFromContents(ct, opt, csz, widget);
-      }
-      break;
-    default:
-      sz = QProxyStyle::sizeFromContents(ct, opt, csz, widget);
-  }
-  return sz;
+  return QProxyStyle::sizeFromContents(ct, opt, csz, widget);
 }
 
 void RaCoStyle::drawComplexControl(QStyle::ComplexControl control,
                                    const QStyleOptionComplex* option,
                                    QPainter* p, const QWidget* widget) const {
-  switch (control) {
-    case CC_ComboBox:
-      if (const QStyleOptionComboBox* cmb =
-              qstyleoption_cast<const QStyleOptionComboBox*>(option)) {
-        // draw common area for edit and button
-        drawRoundedRect(option->rect, p, cmb->palette.brush(QPalette::Base),
-                        &cmb->palette.brush(QPalette::Window));
-
-        if (cmb->subControls & SC_ComboBoxArrow) {
-          State flags = State_None;
-
-          QRect ar = proxy()->subControlRect(CC_ComboBox, cmb, SC_ComboBoxArrow,
-                                             widget);
-          p->setClipRect(ar);
-          drawRoundedRect(option->rect, p,
-                          cmb->palette.brush(QPalette::Button));
-          p->setClipRect(option->rect);
-
-          ar.adjust(2, 2, -2, -2);
-          if (option->state & State_Enabled)
-            flags |= State_Enabled;
-          if (option->state & State_HasFocus)
-            flags |= State_HasFocus;
-
-          QStyleOption arrowOpt = *cmb;
-          arrowOpt.rect = ar.adjusted(1, 1, -1, -1);
-          arrowOpt.state = flags;
-          proxy()->drawPrimitive(PE_IndicatorArrowDown, &arrowOpt, p, widget);
-        }
-
-        // untouched code for edit field (part of single combo box code block in default style)
-        if (cmb->subControls & SC_ComboBoxEditField) {
-          QRect re = proxy()->subControlRect(CC_ComboBox, cmb,
-                                             SC_ComboBoxEditField, widget);
-
-          if (cmb->state & State_HasFocus) {
-            p->setPen(cmb->palette.highlightedText().color());
-            p->setBackground(cmb->palette.highlight());
-
-          } else {
-            p->setPen(cmb->palette.text().color());
-            p->setBackground(cmb->palette.window());
-          }
-
-          if (cmb->state & State_HasFocus && !cmb->editable) {
-            QStyleOptionFocusRect focus;
-            focus.QStyleOption::operator=(*cmb);
-            focus.rect = subElementRect(SE_ComboBoxFocusRect, cmb, widget);
-            focus.state |= State_FocusAtBorder;
-            focus.backgroundColor = cmb->palette.highlight().color();
-            proxy()->drawPrimitive(PE_FrameFocusRect, &focus, p, widget);
-          }
-        }
-      }
-      break;
-    case CC_ScrollBar:
-      if (const QStyleOptionSlider* scrollbar =
-              qstyleoption_cast<const QStyleOptionSlider*>(option)) {
-        // clear background of scroll bar
-        p->fillRect(scrollbar->rect,
-                    scrollbar->palette.brush(QPalette::Window));
-        QProxyStyle::drawComplexControl(control, option, p, widget);
-      }
-    case CC_SpinBox:
-      if (const QStyleOptionSpinBox* sb =
-              qstyleoption_cast<const QStyleOptionSpinBox*>(option)) {
-        // common background for subelements
-        drawRoundedRect(sb->rect, p, sb->palette.brush(QPalette::Button),
-                        &sb->palette.brush(QPalette::Window));
-
-        QStyleOptionSpinBox copy = *sb;
-        if (sb->subControls & SC_SpinBoxUp) {
-          copy.subControls = SC_SpinBoxUp;
-          copy.rect =
-              proxy()->subControlRect(CC_SpinBox, sb, SC_SpinBoxUp, widget);
-          copy.rect.adjust(0, 1, 0, 0);
-          proxy()->drawPrimitive(PE_IndicatorSpinUp, &copy, p, widget);
-        }
-        if (sb->subControls & SC_SpinBoxDown) {
-          copy.subControls = SC_SpinBoxDown;
-          copy.rect =
-              proxy()->subControlRect(CC_SpinBox, sb, SC_SpinBoxDown, widget);
-          copy.rect.adjust(0, 0, 0, -1);
-          proxy()->drawPrimitive(PE_IndicatorSpinDown, &copy, p, widget);
-        }
-      }
-      break;
-    default:
-      QProxyStyle::drawComplexControl(control, option, p, widget);
-  }
+  QProxyStyle::drawComplexControl(control, option, p, widget);
 }
 
 void RaCoStyle::drawControl(ControlElement ce, const QStyleOption* opt,
@@ -342,14 +187,6 @@ void RaCoStyle::drawControl(ControlElement ce, const QStyleOption* opt,
               qstyleoption_cast<const QStyleOptionButton*>(opt)) {
         QStyleOptionButton subopt = *btn;
         subopt.rect = subElementRect(SE_PushButtonContents, btn, widget);
-        if ((btn->state & State_Enabled) &&
-            saveGetProperty(widget, "hoverActive").toBool()) {
-          drawRoundedRect(
-              subopt.rect, p,
-              opt->palette.brush(btn->state & (State_Sunken | State_On)
-                                     ? QPalette::Base
-                                     : QPalette::Button));
-        }
         proxy()->drawControl(CE_PushButtonLabel, &subopt, p, widget);
         if (btn->state & State_HasFocus) {
           QStyleOptionFocusRect fropt;
@@ -404,13 +241,6 @@ void RaCoStyle::drawControl(ControlElement ce, const QStyleOption* opt,
     case CE_ShapedFrame:
       if (widget->objectName() == "dockAreaTitleBar") {
         p->fillRect(opt->rect, Colors::brush(Colormap::dockTitleBackground));
-      } else if (strcmp(widget->metaObject()->className(),
-                        "ads::CDockWidgetTab") == 0) {
-        if (widget != nullptr && widget->property("activeTab").toBool()) {
-          p->fillRect(opt->rect, Colors::brush(Colormap::grayBack));
-        } else {
-          p->fillRect(opt->rect, Colors::brush(Colormap::dockTitleBackground));
-        }
       }
       QProxyStyle::drawControl(ce, opt, p, widget);
       break;
@@ -420,7 +250,6 @@ void RaCoStyle::drawControl(ControlElement ce, const QStyleOption* opt,
       }
       QProxyStyle::drawControl(ce, opt, p, widget);
       break;
-
     default:
       QProxyStyle::drawControl(ce, opt, p, widget);
   }
@@ -434,18 +263,6 @@ void RaCoStyle::drawPrimitive(PrimitiveElement element,
       if (const QStyleOptionFrame* opt =
               qstyleoption_cast<const QStyleOptionFrame*>(option)) {
         QBrush backBrush = opt->palette.brush(QPalette::Base);
-
-        if (saveGetProperty(widget, "updatedInBackground", 1).toBool()) {
-          backBrush = Colors::brush(Colormap::updatedInBackground);
-        }
-        auto outOfRange{saveGetProperty(widget, "outOfRange", 2).toInt()};
-        if (outOfRange != 0) {
-          if (outOfRange > 0) {
-            backBrush = Colors::brush(Colormap::errorColor);
-          } else {
-            backBrush = Colors::brush(Colormap::errorColorDark);
-          }
-        }
         // enlarge box to clip right rounded corners
         QRect bounds(opt->rect);
         if (const QLineEdit* le = qobject_cast<const QLineEdit*>(widget)) {
@@ -455,14 +272,14 @@ void RaCoStyle::drawPrimitive(PrimitiveElement element,
           }
         }
         if (widget->parent() && dynamic_cast<QComboBox*>(widget->parent())) {
-          // avoid duplicate rounded border drawing when the lineEdit is a combobox child.
+          // avoid duplicate rounded border drawing when the lineEdit is a combo box child.
           bounds.adjust(-5, 0, 5, 0);
         }
 
         drawRoundedRect(bounds, p, backBrush,
                         &opt->palette.brush(QPalette::Window));
 
-        // we dont use a frame in the style, so we don't need to calculate or draw it
+        // we don't use a frame in the style, so we don't need to calculate or draw it
       }
       break;
 
@@ -597,7 +414,7 @@ void RaCoStyle::drawRoundedRect(const QRect& rect, QPainter* p,
 }
 
 /**
-* Helper method to implement custom behaviour in an event filter
+* Helper method to implement custom behavior in an event filter
 */
 bool RaCoStyle::eventFilter(QObject* obj, QEvent* event) {
   // activate hover for push button
@@ -615,5 +432,4 @@ bool RaCoStyle::eventFilter(QObject* obj, QEvent* event) {
 
   return QObject::eventFilter(obj, event);
 }
-
 }  // namespace raco::style

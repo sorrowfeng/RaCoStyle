@@ -5,13 +5,13 @@
 #include "Colors.h"
 
 namespace raco::style {
-
 class ThemeManager : public QObject {
   Q_OBJECT
  public:
   static ThemeManager& instance();
 
   void setThemeMode(ThemeMode mode);
+  void refreshAllWidgets();
 
  Q_SIGNALS:
   void themeChanged();
@@ -19,10 +19,7 @@ class ThemeManager : public QObject {
  private:
   ThemeManager() {}
   ~ThemeManager() {}
-
-  void refreshAllWidgets();
 };
-
 }  // namespace raco::style
 
 #endif  // THEMEMANAGER_H

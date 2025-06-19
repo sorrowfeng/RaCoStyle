@@ -14,7 +14,6 @@
 #include <map>
 
 namespace raco::style {
-
 enum class ThemeMode { Dark, Light };
 
 enum class Colormap {
@@ -26,24 +25,7 @@ enum class Colormap {
   text,
   grayEditDisabled,
   textDisabled,
-
-  // additional colors for text editors
-  textHighlightIndentation,
-  textHighlightComments,
-  textHighlightNumbers,
-  textHighlightArrows,
-
-  // additional colors for custom widgets and custom roles/states
-  updatedInBackground,
-  errorColor,
-  warningColor,
-  errorColorDark,
-  errorColorLight,
   dockTitleBackground,
-  externalReference,
-  externalReferenceDisabled,
-
-  abstractSceneViewBackground
 };
 
 class Colors {
@@ -66,5 +48,4 @@ class Colors {
 
   ThemeMode currentThemeMode_;
 };
-
 }  // namespace raco::style

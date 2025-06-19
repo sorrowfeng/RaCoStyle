@@ -15,7 +15,6 @@ class QPainterPath;
 QT_END_NAMESPACE
 
 namespace raco::style {
-
 class RaCoStyle : public QProxyStyle {
   Q_OBJECT
 
@@ -31,15 +30,6 @@ class RaCoStyle : public QProxyStyle {
 
  public:
   RaCoStyle();
-
-  /**
-	 * Gets a property from a widget or one of it's parents.
-	 * @param widget the widget on which to look for the property.
-	 * @param level specifies at which level in the widget hierarchy to look for the property (e.g. level 1 will look for the property at widget->parent()).
-	 * @return [QVariant] of the property (the [QVariant] is invalid if the property doesn't exist).
-	 */
-  static QVariant saveGetProperty(const QWidget* widget, const char* name,
-                                  size_t level = 0);
 
   QPalette standardPalette() const override;
 

@@ -6,7 +6,6 @@
 #include "style/RaCoStyle.h"
 
 namespace raco::style {
-
 ThemeManager& ThemeManager::instance() {
   static ThemeManager inst;
   return inst;
@@ -17,7 +16,6 @@ void ThemeManager::setThemeMode(ThemeMode mode) {
   qApp->setStyle(new RaCoStyle());
   qApp->setPalette(qApp->style()->standardPalette());
   emit themeChanged();
-  refreshAllWidgets();
 }
 
 void ThemeManager::refreshAllWidgets() {
@@ -26,5 +24,4 @@ void ThemeManager::refreshAllWidgets() {
     widget->update();
   }
 }
-
 }  // namespace raco::style
