@@ -33,6 +33,7 @@ class Colors {
   static QColor& color(Colormap color);
   static QBrush& brush(Colormap color);
   static void setThemeMode(ThemeMode mode);
+  static ThemeMode getThemeMode();
 
  private:
   Colors() noexcept;

@@ -30,6 +30,10 @@ void Colors::setThemeMode(ThemeMode mode) {
   instance().currentThemeMode_ = mode;
 }
 
+ThemeMode Colors::getThemeMode() {
+  return instance().currentThemeMode_;
+}
+
 Colors::Colors() noexcept {
   // Dark 主题颜色 (Updated based on Fluent UI dark theme)
   darkColors_ = {// Fluent UI neutralBackground1

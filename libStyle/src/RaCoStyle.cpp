@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SPDX-License-Identifier: MPL-2.0
  *
  * This file is part of Ramses Composer
@@ -22,7 +22,7 @@
 #include <QStyleFactory>
 
 namespace raco::style {
-RaCoStyle::RaCoStyle() : QProxyStyle(QStyleFactory::create("windows")) {
+RaCoStyle::RaCoStyle() : QProxyStyle(QStyleFactory::create("fusion")) {
   setObjectName("RaCoStyle");
 
   // disable takeover of windows color scheme to make style work
@@ -125,16 +125,18 @@ int RaCoStyle::styleHint(StyleHint hint, const QStyleOption* option,
 QIcon RaCoStyle::standardIcon(StandardPixmap standardIcon,
                               const QStyleOption* option,
                               const QWidget* widget) const {
+  return QProxyStyle::standardIcon(standardIcon, option, widget);
+  // 不使用下面的图标
   QIcon icon;
   switch (standardIcon) {
     case SP_TitleBarCloseButton:
-      return Icons::instance().close;
+      return Icons::instance().close();
       break;
     case SP_TitleBarNormalButton:
-      return Icons::instance().undock;
+      return Icons::instance().undock();
       break;
     case SP_TitleBarMenuButton:
-      return Icons::instance().menu;
+      return Icons::instance().menu();
       break;
     default:
       return QProxyStyle::standardIcon(standardIcon, option, widget);
@@ -144,14 +146,15 @@ QIcon RaCoStyle::standardIcon(StandardPixmap standardIcon,
 QPixmap RaCoStyle::generatedIconPixmap(QIcon::Mode iconMode,
                                        const QPixmap& pixmap,
                                        const QStyleOption* opt) const {
-  if (iconMode == QIcon::Mode::Disabled) {
-    QPixmap transparentPixmap(pixmap.size());
-    transparentPixmap.fill(Qt::transparent);
-    QPainter p(&transparentPixmap);
-    p.setOpacity(DISABLED_ICON_ALPHA);
-    p.drawPixmap(0, 0, pixmap);
-    return transparentPixmap;
-  }
+  // 用于在disable的时候半透明图标, 暂时注释
+  //if (iconMode == QIcon::Mode::Disabled) {
+  //  QPixmap transparentPixmap(pixmap.size());
+  //  transparentPixmap.fill(Qt::transparent);
+  //  QPainter p(&transparentPixmap);
+  //  p.setOpacity(DISABLED_ICON_ALPHA);
+  //  p.drawPixmap(0, 0, pixmap);
+  //  return transparentPixmap;
+  //}
 
   return QProxyStyle::generatedIconPixmap(iconMode, pixmap, opt);
 }
@@ -258,143 +261,7 @@ void RaCoStyle::drawControl(ControlElement ce, const QStyleOption* opt,
 void RaCoStyle::drawPrimitive(PrimitiveElement element,
                               const QStyleOption* option, QPainter* p,
                               const QWidget* widget) const {
-  switch (element) {
-    case PE_PanelLineEdit:
-      if (const QStyleOptionFrame* opt =
-              qstyleoption_cast<const QStyleOptionFrame*>(option)) {
-        QBrush backBrush = opt->palette.brush(QPalette::Base);
-        // enlarge box to clip right rounded corners
-        QRect bounds(opt->rect);
-        if (const QLineEdit* le = qobject_cast<const QLineEdit*>(widget)) {
-          if (const QAbstractSpinBox* spin =
-                  qobject_cast<const QAbstractSpinBox*>(le->parent())) {
-            bounds.adjust(0, 0, 10, 0);
-          }
-        }
-        if (widget->parent() && dynamic_cast<QComboBox*>(widget->parent())) {
-          // avoid duplicate rounded border drawing when the lineEdit is a combo box child.
-          bounds.adjust(-5, 0, 5, 0);
-        }
-
-        drawRoundedRect(bounds, p, backBrush,
-                        &opt->palette.brush(QPalette::Window));
-
-        // we don't use a frame in the style, so we don't need to calculate or draw it
-      }
-      break;
-
-    case PE_IndicatorCheckBox:
-      if (const QStyleOptionButton* opt =
-              qstyleoption_cast<const QStyleOptionButton*>(option)) {
-        QBrush fill;
-        if (!(opt->state & State_On) && !(opt->state & State_Off))  // Tristate
-          fill = opt->palette.base();
-        else if (opt->state & State_NoChange)
-          fill = QBrush(opt->palette.base().color(), Qt::Dense4Pattern);
-        else if (opt->state & State_Sunken)
-          fill = opt->palette.button();
-        else if (opt->state & State_Enabled)
-          fill = opt->palette.base();
-        else
-          fill = opt->palette.base();
-        p->save();
-
-        drawRoundedRect(opt->rect, p, fill,
-                        &opt->palette.brush(QPalette::Window));
-
-        if (opt->state & State_NoChange)
-          p->setPen(opt->palette.dark().color());
-        else
-          p->setPen(opt->palette.text().color());
-
-        if (opt->state & State_On) {
-          QPointF points[6];
-          qreal scaleh = opt->rect.width() / 12.0;
-          qreal scalev = opt->rect.height() / 12.0;
-          points[0] = {opt->rect.x() + 3.5 * scaleh,
-                       opt->rect.y() + 5.5 * scalev};
-          points[1] = {points[0].x(), points[0].y() + 2 * scalev};
-          points[2] = {points[1].x() + 2 * scaleh, points[1].y() + 2 * scalev};
-          points[3] = {points[2].x() + 4 * scaleh, points[2].y() - 4 * scalev};
-          points[4] = {points[3].x(), points[3].y() - 2 * scalev};
-          points[5] = {points[4].x() - 4 * scaleh, points[4].y() + 4 * scalev};
-          p->setPen(QPen(opt->palette.text().color(), 0));
-          p->setBrush(opt->palette.text().color());
-          p->drawPolygon(points, 6);
-        } else if (!(opt->state & State_On) &&
-                   !(opt->state & State_Off)) {  // Tristate
-          QPointF points[4];
-          qreal scaleh = opt->rect.width() / 12.0;
-          qreal scalev = opt->rect.height() / 12.0;
-          points[0] = {opt->rect.x() + 3 * scaleh, opt->rect.y() + 5 * scalev};
-          points[1] = {points[0].x() + 6 * scaleh, points[0].y() + 0 * scalev};
-          points[2] = {points[1].x() + 0 * scaleh, points[1].y() + 2 * scalev};
-          points[3] = {points[2].x() - 6 * scaleh, points[2].y() + 0 * scalev};
-          p->setPen(QPen(opt->palette.text().color(), 0));
-          p->setBrush(opt->palette.text().color());
-          p->drawPolygon(points, 4);
-        }
-        p->restore();
-      }
-      break;
-
-    case (QStyle::PE_IndicatorItemViewItemDrop): {
-      if (!option->rect.isNull()) {
-        QStyleOption dragIndicatorRectOption(*option);
-        dragIndicatorRectOption.rect.setLeft(0);
-        if (widget != nullptr) {
-          dragIndicatorRectOption.rect.setRight(
-              widget->width() - DRAG_INDICATOR_RIGHT_PIXEL_PUFFER);
-        }
-        QProxyStyle::drawPrimitive(element, &dragIndicatorRectOption, p,
-                                   widget);
-      }
-      break;
-    }
-
-    case PE_IndicatorBranch: {
-      static const int decoration_size = 24;
-      int mid_h = option->rect.x() + option->rect.width() / 2;
-      int mid_v = option->rect.y() + option->rect.height() / 2;
-      int bef_h = mid_h;
-      int bef_v = mid_v;
-      int aft_h = mid_h;
-      int aft_v = mid_v;
-      if (option->state & State_Children) {
-        int delta = decoration_size / 2;
-        bef_h -= delta;
-        bef_v -= delta;
-        aft_h += delta;
-        aft_v += delta;
-        // draw icons
-        if (option->state & State_Open)
-          Icons::instance().expanded.paint(
-              p, {bef_h, bef_v, decoration_size, decoration_size});
-        else
-          Icons::instance().collapsed.paint(
-              p, {bef_h, bef_v, decoration_size, decoration_size});
-      }
-      // draw lines, untouched code
-      QBrush brush(option->palette.dark().color(), Qt::Dense4Pattern);
-      if (option->state & State_Item) {
-        if (option->direction == Qt::RightToLeft)
-          p->fillRect(option->rect.left(), mid_v, bef_h - option->rect.left(),
-                      1, brush);
-        else
-          p->fillRect(aft_h, mid_v, option->rect.right() - aft_h + 1, 1, brush);
-      }
-      if (option->state & State_Sibling)
-        p->fillRect(mid_h, aft_v, 1, option->rect.bottom() - aft_v + 1, brush);
-      if (option->state &
-          (State_Open | State_Children | State_Item | State_Sibling))
-        p->fillRect(mid_h, option->rect.y(), 1, bef_v - option->rect.y(),
-                    brush);
-      break;
-    }
-
-    default:
-      QProxyStyle::drawPrimitive(element, option, p, widget);
-  }
+  QProxyStyle::drawPrimitive(element, option, p, widget);
 }
 
 /**

@@ -25,5 +25,6 @@ target_include_directories(libStyle
 target_link_libraries(libStyle
     PUBLIC
         Qt${QT_VERSION_MAJOR}::Widgets
+        Qt${QT_VERSION_MAJOR}::Svg
 )
 add_library(raco::Style ALIAS libStyle)

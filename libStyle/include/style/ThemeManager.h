@@ -12,6 +12,7 @@ class ThemeManager : public QObject {
 
   void setThemeMode(ThemeMode mode);
   void refreshAllWidgets();
+  ThemeMode getSystemThemeMode() const;
 
  Q_SIGNALS:
   void themeChanged();
