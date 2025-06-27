@@ -13,7 +13,13 @@ ThemeManager& ThemeManager::instance() {
   return inst;
 }
 
+ThemeMode ThemeManager::getThemeMode() const {
+  return Colors::getThemeMode();
+}
+
 void ThemeManager::setThemeMode(ThemeMode mode) {
+  if (mode == Colors::getThemeMode())
+    return;
   Colors::setThemeMode(mode);
   qApp->setStyle(new RaCoStyle());
   qApp->setPalette(qApp->style()->standardPalette());

@@ -14,11 +14,22 @@
 - Qt 5.15+ 或 Qt 6
 - CMake 3.12+
 
+### 效果预览
+
+![250627102851456.png](https://fastly.jsdelivr.net/gh/sorrowfeng/ImageHub@main/2025-06/250627102851456_1750991331477.png)
+
+![250627102919777.png](https://fastly.jsdelivr.net/gh/sorrowfeng/ImageHub@main/2025-06/250627102919777_1750991359785.png)
+
 ### 使用说明
 ```bash
 git clone https://github.com/sorrowfeng/RaCoStyle.git
 
 clone到你的项目中
+```
+
+```cmake
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Svg)
 
 # 添加子目录
 add_subdirectory(RaCoStyle/libStyle)
@@ -26,10 +37,16 @@ add_subdirectory(RaCoStyle/libStyle)
 add_executable(${ProjectName} main.cpp)
 
 # 链接库
+target_link_libraries(DemoQt6CMake PRIVATE
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Svg
+)
 target_link_libraries(${ProjectName} PRIVATE
     raco::Style
 )
+```
 
+```cpp
 # 使用
 #include "style/RaCoStyle.h"
 #include "style/ThemeManager.h"

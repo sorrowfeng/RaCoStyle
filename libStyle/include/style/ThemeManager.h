@@ -10,6 +10,7 @@ class ThemeManager : public QObject {
  public:
   static ThemeManager& instance();
 
+  ThemeMode getThemeMode() const;
   void setThemeMode(ThemeMode mode);
   void refreshAllWidgets();
   ThemeMode getSystemThemeMode() const;
